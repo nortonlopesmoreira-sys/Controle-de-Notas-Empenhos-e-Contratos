@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gestão de Notas</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('tema')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){}</script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--bg:#f2f4f6;--sf:#fff;--ink:#1b2733;--mut:#5f6c78;--ln:#d9dfe5;--acc:#0f5f73;--on:#fff;--red:#b3261e;--redbg:#fbe9e7;--grn:#1d6b3a;--grnbg:#e4f3e9;--hov:#eef3f6}
+[data-theme=dark]{color-scheme:dark;--bg:#12181e;--sf:#1a222a;--ink:#e6ebef;--mut:#93a0ac;--ln:#2d3944;--acc:#6cc3d8;--on:#10242b;--red:#ff9a91;--redbg:#3a1f1d;--grn:#7fd49b;--grnbg:#1b3225;--hov:#222c35}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:var(--on);border:0;border-radius:6px;padding:8px 14px;font-weight:500}
+.btn.sec{background:transparent;color:var(--ink);border:1px solid var(--ln)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{background:var(--sf);border:1px solid var(--ln);border-radius:6px;padding:8px 10px}
+input[type=checkbox]{width:18px;height:18px;padding:0;accent-color:var(--acc)}
+#login{max-width:360px;margin:14vh auto 0;padding:32px 28px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;position:relative}
+#login h1{font-size:24px;margin:0 0 24px;text-align:center}
+#login label.f{display:block;margin-bottom:12px;font-weight:500}#login input.t{width:100%;margin-top:4px}
+.lem{display:flex;align-items:center;gap:8px;margin:4px 0 8px;color:var(--mut)}
+.err{color:var(--red);min-height:20px;margin:8px 0}
+.tm{background:transparent;border:1px solid var(--ln);border-radius:6px;padding:6px 10px}
+#login .tm{position:absolute;top:10px;right:10px;border:0}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 20px;background:var(--sf);border-bottom:1px solid var(--ln)}
+header h1{font-size:17px;margin:0}header .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}header span{color:var(--mut)}
+main{padding:20px;max-width:1280px;margin:auto}
+#res{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:18px}
+#res div{display:flex;flex-direction:column}#res b{font:500 22px 'IBM Plex Mono',monospace}#res span{color:var(--mut)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}.bar input[type=search]{flex:1;min-width:160px;max-width:260px}.sp{flex:1}
+.ta2{display:none;align-items:center;gap:8px}
+.tw{overflow-x:auto;background:var(--sf);border:1px solid var(--ln);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:980px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--ln);white-space:nowrap}
+th{color:var(--mut);font-weight:500;font-size:13px}.n{text-align:right;font-family:'IBM Plex Mono',monospace}
+tbody tr:hover{background:var(--hov)}tbody tr:last-child td{border:0}
+.lk{background:none;border:0;color:var(--acc);font:500 15px 'IBM Plex Mono',monospace;padding:0;text-decoration:underline}
+.p{padding:2px 9px;border-radius:99px;font-size:13px;font-weight:500;display:inline-block}.p.v{background:var(--redbg);color:var(--red)}.p.a{background:var(--grnbg);color:var(--grn)}.p.s{background:var(--hov);border:1px solid var(--ln)}
+.ul{max-width:240px;overflow:hidden;text-overflow:ellipsis;color:var(--mut)}
+#dr{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--sf);border-left:1px solid var(--ln);box-shadow:-8px 0 24px #0003;padding:20px 20px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;z-index:5}
+#dr[hidden]{display:none}#dr h2{margin:0;font-size:18px}
+dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0;align-items:center}dt{color:var(--mut)}dd{margin:0;text-align:right}
+textarea{width:100%;min-height:90px;resize:vertical}
+.h{border-top:1px solid var(--ln);padding:10px 0}.h small{color:var(--mut);display:block}.h p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:9;max-width:92vw;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}#toast.e{background:var(--red);color:#fff}
+#folha{display:none}
+.tabs{display:flex;gap:4px;padding:0 20px;background:var(--sf);border-bottom:1px solid var(--ln)}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:12px 16px;font-weight:500;color:var(--mut)}.tabs button.on{color:var(--ink);border-color:var(--acc)}
+#resp{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:18px}#resp div{display:flex;flex-direction:column}#resp b{font:500 22px 'IBM Plex Mono',monospace}#resp span{color:var(--mut)}
+.mv{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:20;padding:12px}.mv[hidden]{display:none}
+.mb{background:var(--sf);border:1px solid var(--ln);border-radius:10px;width:min(560px,100%);max-height:88vh;overflow:auto;padding:20px}.mb h2{margin:0 0 4px;font-size:19px}.mb h3{font-size:14px;margin:16px 0 6px}
+.av{display:block;width:100%;text-align:left;background:var(--hov);border:1px solid var(--ln);border-radius:8px;padding:9px 12px;margin-bottom:6px}.av b{font-family:'IBM Plex Mono',monospace}.av small{display:block;color:var(--mut);margin-top:2px}
+.bd{background:#b3261e;color:#fff;border-radius:99px;font-size:12px;padding:1px 7px;margin-left:6px}.bd[hidden]{display:none}
+.p.w{background:#fff3d6;color:#8a5a00}[data-theme=dark] .p.w{background:#3a2e12;color:#ffd27a}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.fg label{display:flex;flex-direction:column;gap:4px;font-weight:500}.fg .w2{grid-column:1/-1}.fg input,.fg select,.fg textarea{width:100%}
+@media(max-width:760px){.tabs{padding:0 8px}.tabs button{flex:1}.fg{grid-template-columns:1fr}#resp{gap:14px 24px}#resp b{font-size:18px}}
+@media(max-width:760px){
+ body{font-size:16px}input,select,textarea{font-size:16px}
+ #login{margin:10vh 14px 0;max-width:none}
+ header{padding:10px 12px}main{padding:12px}
+ #res{gap:14px 24px}#res b{font-size:18px}
+ .bar input[type=search],.bar select{flex:1 1 100%;max-width:none}
+ .bar .btn{flex:1 1 100%}.sp{display:none}.ta2{display:flex;flex:1 1 100%}
+ .btn,.tm{padding:11px 14px}
+ .tw{background:none;border:0;overflow:visible}
+ table,tbody,tr,td{display:block;width:100%;min-width:0}thead{display:none}
+ tr{background:var(--sf);border:1px solid var(--ln);border-radius:8px;margin-bottom:10px;padding:6px 14px}
+ td{display:flex;justify-content:space-between;align-items:center;gap:14px;border:0!important;padding:6px 0;white-space:normal;text-align:right}
+ td::before{content:attr(data-l);color:var(--mut);font-size:14px;text-align:left;flex:none}
+ .ul{max-width:none;overflow:visible}
+ #dr{padding:16px 14px calc(16px + env(safe-area-inset-bottom))}#dr .row .btn{flex:1 1 100%}
+}
+@media print{
+ body>*:not(#folha){display:none!important}
+ #folha{display:block;color:#000;background:#fff;font:12px/1.4 Arial,sans-serif}
+ #folha h1{font-size:18px;margin:0 0 4px}#folha p{margin:0 0 12px;color:#444}
+ #folha table{min-width:0;font-size:11px;display:table}#folha tr{display:table-row;border:0;padding:0;margin:0}
+ #folha th,#folha td{display:table-cell;border:1px solid #999!important;padding:5px 7px;white-space:normal;color:#000;text-align:left}
+ #folha th{background:#eee}#folha h3{margin:18px 0 6px}
+}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <button class="tm" type="button" aria-label="Alternar modo noturno">🌙</button>
+  <h1>Gestão de notas</h1>
+  <form id="fl">
+    <label class="f">Usuário<input class="t" id="lu" autocomplete="username" autocapitalize="none" required></label>
+    <label class="f">Senha<input class="t" id="ls" type="password" autocomplete="current-password" required></label>
+    <label class="lem"><input type="checkbox" id="lr"> Salvar usuário neste navegador</label>
+    <div class="err" id="le" role="alert"></div>
+    <button class="btn" id="lb" style="width:100%">Entrar</button>
+  </form>
+</section>
+
+<div id="app" hidden>
+  <header><h1>Gestão de notas</h1>
+    <div class="r"><span id="un"></span><button class="btn sec" id="bl" hidden>🔔 Avisos<span id="bn" class="bd" hidden></span></button><button class="tm" type="button" aria-label="Alternar modo noturno">🌙</button>
+    <button class="btn sec" id="bs">Trocar senha</button><button class="btn sec" id="bx">Sair</button></div>
+  </header>
+  <nav class="tabs"><button id="tn" class="on">Notas</button><button id="tp">Processos<span id="bd" class="bd" hidden></span></button></nav>
+  <main id="vn">
+    <div id="res"></div>
+    <div class="bar">
+      <input type="search" id="q" placeholder="Buscar nº da nota" inputmode="numeric">
+      <select id="fs"><option value="">Todos os prazos</option><option>Vencido</option><option>A vencer</option></select>
+      <select id="fo"><option value="">Todas as situações</option></select>
+      <label class="ta2"><input type="checkbox" id="ta2"> Selecionar todas</label>
+      <span class="sp"></span>
+      <button class="btn sec" id="bp" disabled>Imprimir selecionadas</button>
+      <button class="btn sec" id="bc" disabled>Baixar planilha das selecionadas</button>
+    </div>
+    <div class="err" id="me"></div>
+    <div class="tw"><table>
+      <thead><tr><th><input type="checkbox" id="ta" aria-label="Selecionar todas"></th><th>Nota</th><th>Situação</th><th>Prazo</th><th>Comp.</th><th class="n">Bruto</th><th class="n">Líq. Atual</th><th class="n">Dias</th><th>Emissão</th><th>Vencimento</th><th>Última atualização</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </main>
+  <main id="vp" hidden>
+    <div id="resp"></div>
+    <div class="bar">
+      <input type="search" id="pq" placeholder="Buscar código, objeto ou parte">
+      <select id="pt"><option value="">Todos os tipos</option></select>
+      <select id="ps"><option value="">Todas as situações</option></select>
+      <select id="pf"><option>Em andamento</option><option>Encerrados</option><option>Todos</option></select>
+      <label class="ta2"><input type="checkbox" id="pta2"> Selecionar todos</label>
+      <span class="sp"></span>
+      <button class="btn" id="pn">Novo processo</button>
+      <button class="btn sec" id="pp" disabled>Imprimir selecionados</button>
+      <button class="btn sec" id="pc" disabled>Baixar planilha dos selecionados</button>
+    </div>
+    <div class="err" id="pe"></div>
+    <div class="tw"><table>
+      <thead><tr><th><input type="checkbox" id="pta" aria-label="Selecionar todos"></th><th>Código</th><th>Tipo</th><th>Objeto</th><th>Parte</th><th class="n">Valor</th><th>Abertura</th><th>Prazo</th><th>Situação</th><th>Última atualização</th></tr></thead>
+      <tbody id="tbp"></tbody>
+    </table></div>
+  </main>
+</div>
+
+<aside id="dr" hidden></aside>
+<div id="folha"></div>
+<div id="mv" class="mv" hidden role="dialog" aria-modal="true" aria-labelledby="mt"><div class="mb" id="mb"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const API_URL = 'COLE_AQUI_A_URL_DO_APLICATIVO_DA_WEB';
+
+let tok = null, user = null, opcoes = [], notas = [], sel = new Set(), atual = null, hist = [], pend = null, salvando = 0;
+const $ = s => document.querySelector(s);
+const ls = {g:k => { try { return localStorage.getItem(k); } catch (_) { return null; } }, s:(k, v) => { try { localStorage.setItem(k, v); } catch (_) {} }, r:k => { try { localStorage.removeItem(k); } catch (_) {} }};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const brl = n => Number(n).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const dt = s => s ? s.split('-').reverse().join('/') : '';
+const num = n => Number(n).toFixed(2).replace('.', ',');
+const dias = v => { const [y,m,d] = v.split('-').map(Number), h = new Date(); return Math.round((new Date(h.getFullYear(),h.getMonth(),h.getDate()) - new Date(y,m-1,d)) / 864e5); };
+const agora = () => new Date().toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'});
+const aberta = n => !['Paga', 'Cancelada'].includes(n.situacao);
+const pillSit = n => `<span class="p ${n.situacao === 'Paga' ? 'a' : 's'}">${esc(n.situacao)}</span>`;
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const biz = m => Object.assign(new Error(m), {biz:true});
+
+// ---------- aviso rápido ----------
+let tt;
+function aviso(m, erro) { const t = $('#toast'); t.textContent = m; t.className = 'on' + (erro ? ' e' : ''); clearTimeout(tt); tt = setTimeout(() => t.className = '', erro ? 6000 : 2500); }
+
+// ---------- tema ----------
+function tema(t) { document.documentElement.dataset.theme = t; ls.s('tema', t); document.querySelectorAll('.tm').forEach(b => b.textContent = t === 'dark' ? '☀️' : '🌙'); }
+document.querySelectorAll('.tm').forEach(b => b.onclick = () => tema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+tema(document.documentElement.dataset.theme || 'light');
+
+// ---------- comunicação (com novas tentativas automáticas) ----------
+async function api(acao, d = {}, tent = 3) {
+  if (API_URL.startsWith('COLE_')) throw biz('Configure a API_URL no início do script do index.html.');
+  let falha = 'Sem conexão com o servidor. Verifique a internet e tente de novo.';
+  for (let i = 0; i < tent; i++) {
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 30000);
+    try {
+      const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({acao, token:tok, ...d}), signal:ac.signal});
+      const j = await r.json(); clearTimeout(tm);
+      if (j.ok) return j;
+      if (j.sessao) { sair(true); throw biz(j.erro); }
+      if (!j.retry) throw biz(j.erro || 'Erro inesperado.');
+      falha = 'O servidor está ocupado. Tente novamente em instantes.';
+    } catch (e) { clearTimeout(tm); if (e.biz) throw e; }
+    if (i < tent - 1) await wait(1200 * (i + 1));
+  }
+  throw new Error(falha);
+}
+addEventListener('beforeunload', e => { if (salvando) { e.preventDefault(); e.returnValue = ''; } });
+
+// ---------- login ----------
+const uSalvo = ls.g('usuario');
+if (uSalvo) { $('#lu').value = uSalvo; $('#lr').checked = true; $('#ls').focus(); }
+$('#fl').onsubmit = async e => {
+  e.preventDefault(); $('#le').textContent = ''; $('#lb').disabled = true; $('#lb').textContent = 'Entrando…';
+  try {
+    const u = $('#lu').value.trim();
+    const j = await api('login', {usuario:u, senha:$('#ls').value}, 2);
+    tok = j.token; user = j.usuario;
+    $('#lr').checked ? ls.s('usuario', u) : ls.r('usuario');
+    try { sessionStorage.setItem('tk', tok); } catch (_) {}
+    $('#ls').value = ''; entrar();
+  } catch (er) { $('#le').textContent = er.message; }
+  $('#lb').disabled = false; $('#lb').textContent = 'Entrar';
+};
+async function entrar() {
+  $('#login').hidden = true; $('#app').hidden = false; $('#me').textContent = '';
+  try {
+    const j = await api('listar'); user = j.usuario; opcoes = j.opcoes;
+    $('#un').textContent = user.nome;
+    $('#fo').innerHTML = '<option value="">Todas as situações</option>' + opcoes.map(o => `<option>${esc(o)}</option>`).join('');
+    notas = j.notas.map(n => ({...n, dias:dias(n.venc), sit:dias(n.venc) > 0 ? 'Vencido' : 'A vencer'}));
+    render();
+    await carregarProc(); avisosAbrir(true);
+  } catch (er) { $('#me').textContent = er.message; }
+}
+function sair(silencioso) {
+  if (!silencioso && tok) api('logout', {}, 1).catch(() => {});
+  tok = null; try { sessionStorage.removeItem('tk'); sessionStorage.removeItem('avisoVisto'); } catch (_) {}
+  $('#app').hidden = true; $('#dr').hidden = true; $('#login').hidden = false; procOk = false; aba('n'); $('#mv').hidden = true; $('#bl').hidden = true;
+  $('#le').textContent = silencioso ? 'Sessão expirada. Entre novamente — seu texto não salvo foi guardado.' : '';
+}
+$('#bx').onclick = () => sair();
+$('#bs').onclick = async () => {
+  const a = prompt('Senha atual:'); if (a === null) return;
+  const n = prompt('Nova senha (mínimo 6 caracteres):'); if (n === null) return;
+  try { await api('trocarSenha', {atual:a, nova:n}); aviso('Senha alterada.'); } catch (e) { aviso(e.message, true); }
+};
+
+// ---------- lista ----------
+function filtradas() {
+  const q = $('#q').value.trim(), s = $('#fs').value, o = $('#fo').value;
+  return notas.filter(n => (!q || String(n.nota).includes(q)) && (!s || n.sit === s) && (!o || n.situacao === o));
+}
+function render() {
+  const soma = a => a.reduce((t, n) => t + n.liq, 0);
+  const ab = notas.filter(aberta), v = ab.filter(n => n.sit === 'Vencido'), a = ab.filter(n => n.sit !== 'Vencido');
+  $('#res').innerHTML = [[v, 'vencidas'], [a, 'a vencer'], [ab, 'em aberto no total']]
+    .map(([l, t]) => `<div><b>${brl(soma(l))}</b><span>${l.length} ${t}</span></div>`).join('');
+  const l = filtradas();
+  $('#tb').innerHTML = l.length ? l.map(n => `<tr>
+    <td data-l="Selecionar"><input type="checkbox" data-n="${n.nota}" ${sel.has(n.nota) ? 'checked' : ''} aria-label="Selecionar nota ${n.nota}"></td>
+    <td data-l="Nota"><button class="lk" data-o="${n.nota}">${n.nota}</button></td>
+    <td data-l="Situação">${pillSit(n)}</td>
+    <td data-l="Prazo">${aberta(n) ? `<span class="p ${n.sit === 'Vencido' ? 'v' : 'a'}">${n.sit}</span>` : '—'}</td>
+    <td data-l="Comp.">${dt(n.comp)}</td><td class="n" data-l="Bruto">${brl(n.bruto)}</td><td class="n" data-l="Líq. Atual">${brl(n.liq)}</td>
+    <td class="n" data-l="Dias">${n.dias}</td><td data-l="Emissão">${dt(n.emissao)}</td><td data-l="Vencimento">${dt(n.venc)}</td>
+    <td class="ul" data-l="Última atualização">${n.ult ? `<b>${n.ult.quando.slice(0,10)}</b> ${esc(n.ult.texto)}` : '—'}</td></tr>`).join('')
+    : '<tr><td colspan="11">Nenhuma nota encontrada.</td></tr>';
+  $('#bp').disabled = $('#bc').disabled = !sel.size;
+}
+$('#q').oninput = $('#fs').onchange = $('#fo').onchange = render;
+const todas = c => { filtradas().forEach(n => c ? sel.add(n.nota) : sel.delete(n.nota)); $('#ta').checked = $('#ta2').checked = c; render(); };
+$('#ta').onchange = e => todas(e.target.checked);
+$('#ta2').onchange = e => todas(e.target.checked);
+$('#tb').onclick = e => {
+  const o = e.target.dataset.o, c = e.target.dataset.n;
+  if (o) abrir(Number(o));
+  if (c) { e.target.checked ? sel.add(Number(c)) : sel.delete(Number(c)); $('#bp').disabled = $('#bc').disabled = !sel.size; }
+};
+
+// ---------- ficha da nota ----------
+async function recarregar(n) {
+  hist = (await api('obsListar', {notas:[n.nota]})).obs;
+  n.ult = hist[0] ? {quando:hist[0].quando, usuario:hist[0].usuario, texto:hist[0].texto} : null; n.qtdObs = hist.length;
+}
+async function abrir(nota) {
+  atual = notas.find(n => n.nota === nota); hist = []; pend = null;
+  gaveta('', true); $('#dr').scrollTop = 0;
+  try { await recarregar(atual); gaveta(); } catch (e) { gaveta(e.message); }
+}
+function gaveta(erro, novo) {
+  const n = atual, k = 'rascunho_' + n.nota;
+  const txt = (!novo && $('#ot')) ? $('#ot').value : (ls.g(k) || '');
+  $('#dr').hidden = false;
+  $('#dr').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin-top:0"><h2>Nota ${n.nota}</h2><button class="btn sec" id="fx">Fechar</button></div>
+  <dl><dt>Situação</dt><dd><select id="sit">${opcoes.map(o => `<option ${o === n.situacao ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></dd>
+  <dt>Prazo</dt><dd><span class="p ${n.sit === 'Vencido' ? 'v' : 'a'}">${n.sit}</span></dd>
+  <dt>Competência</dt><dd>${dt(n.comp)}</dd><dt>Emissão</dt><dd>${dt(n.emissao)}</dd><dt>Vencimento</dt><dd>${dt(n.venc)}</dd>
+  <dt>Dias de atraso</dt><dd>${Math.max(n.dias, 0)}</dd><dt>Bruto</dt><dd>${brl(n.bruto)}</dd><dt>Líquido atual</dt><dd>${brl(n.liq)}</dd></dl>
+  <label for="ot"><b>Nova observação</b></label>
+  <textarea id="ot" maxlength="2000" placeholder="Ex.: Cliente informou que pagará dia 10."></textarea>
+  <div class="err" role="alert">${esc(erro || '')}</div>
+  <div class="row"><button class="btn" id="os">Salvar observação</button>
+  <button class="btn sec" id="oi">Imprimir ficha</button><button class="btn sec" id="oc">Baixar planilha</button></div>
+  <h3>Histórico (${hist.length})</h3>
+  ${hist.map(h => `<div class="h"><small>${h.quando} · ${esc(h.usuario)}</small><p>${esc(h.texto)}</p></div>`).join('') || '<p style="color:var(--mut)">Nenhuma observação ainda.</p>'}`;
+  $('#ot').value = txt;
+  $('#ot').oninput = e => e.target.value ? ls.s(k, e.target.value) : ls.r(k);
+  $('#fx').onclick = () => $('#dr').hidden = true;
+
+  $('#sit').onchange = async e => {
+    const novo = e.target.value; e.target.disabled = true; aviso('Salvando situação…'); salvando++;
+    try {
+      await api('situacaoAlterar', {nota:n.nota, situacao:novo}, 4);
+      n.situacao = novo; await recarregar(n).catch(() => {}); aviso('Situação salva.'); gaveta(); render();
+    } catch (er) { aviso(er.message, true); gaveta('Situação não foi salva: ' + er.message); }
+    salvando--;
+  };
+  $('#os').onclick = async () => {
+    const t = $('#ot').value.trim(); if (!t) return aviso('Escreva a observação.', true);
+    if (!pend || pend.nota !== n.nota || pend.texto !== t) pend = {nota:n.nota, texto:t, id:uid()};
+    $('#os').disabled = true; $('#os').textContent = 'Salvando…'; salvando++;
+    try {
+      await api('obsAdicionar', {nota:n.nota, texto:t, id:pend.id}, 4);
+      pend = null; ls.r(k); $('#ot').value = '';
+      await recarregar(n).catch(() => {}); aviso('Observação salva.'); gaveta(); render();
+    } catch (er) { aviso('Não salvou. Seu texto foi mantido.', true); gaveta(er.message + ' Seu texto foi mantido; toque em salvar para tentar de novo.'); }
+    salvando--;
+  };
+  $('#oi').onclick = () => imprimir(fichaHtml(n));
+  $('#oc').onclick = () => baixar(`nota_${n.nota}.csv`, fichaCsv(n));
+}
+
+// ---------- impressão e planilha ----------
+function imprimir(html) { $('#folha').innerHTML = html; window.print(); }
+const cab = t => `<h1>${t}</h1><p>Gerado em ${agora()} por ${esc(user.nome)}</p>`;
+function fichaHtml(n) {
+  return cab(`Ficha da nota ${n.nota}`) + `<table><tr><th>Situação</th><th>Prazo</th><th>Competência</th><th>Emissão</th><th>Vencimento</th><th>Dias de atraso</th><th>Bruto</th><th>Líq. atual</th></tr>
+  <tr><td>${esc(n.situacao)}</td><td>${n.sit}</td><td>${dt(n.comp)}</td><td>${dt(n.emissao)}</td><td>${dt(n.venc)}</td><td>${Math.max(n.dias,0)}</td><td>${brl(n.bruto)}</td><td>${brl(n.liq)}</td></tr></table>
+  <h3>Histórico de atualizações</h3>` + (hist.length
+    ? `<table><tr><th style="width:110px">Data/hora</th><th style="width:130px">Usuário</th><th>Observação</th></tr>${hist.map(h => `<tr><td>${h.quando}</td><td>${esc(h.usuario)}</td><td>${esc(h.texto)}</td></tr>`).join('')}</table>`
+    : '<p>Nenhuma observação registrada.</p>');
+}
+function fichaCsv(n) {
+  return [['Nota', n.nota], ['Situação', n.situacao], ['Prazo', n.sit], ['Competência', dt(n.comp)], ['Emissão', dt(n.emissao)], ['Vencimento', dt(n.venc)],
+    ['Dias de atraso', Math.max(n.dias, 0)], ['Bruto', num(n.bruto)], ['Líq. atual', num(n.liq)], [], ['Data/hora', 'Usuário', 'Observação'],
+    ...hist.map(h => [h.quando, h.usuario, h.texto])];
+}
+const escolhidas = () => notas.filter(n => sel.has(n.nota));
+$('#bp').onclick = () => {
+  const l = escolhidas(), t = l.reduce((s, n) => s + n.liq, 0);
+  imprimir(cab('Relatório de notas') + `<table><tr><th>Nota</th><th>Situação</th><th>Prazo</th><th>Vencimento</th><th>Dias</th><th>Bruto</th><th>Líq. atual</th><th>Última atualização</th></tr>
+  ${l.map(n => `<tr><td>${n.nota}</td><td>${esc(n.situacao)}</td><td>${n.sit}</td><td>${dt(n.venc)}</td><td>${Math.max(n.dias,0)}</td><td>${brl(n.bruto)}</td><td>${brl(n.liq)}</td>
+  <td>${n.ult ? `${n.ult.quando} — ${esc(n.ult.texto)}` : '—'}</td></tr>`).join('')}
+  <tr><th colspan="6">Total (${l.length} notas)</th><th>${brl(t)}</th><th></th></tr></table>`);
+};
+$('#bc').onclick = () => baixar('notas_selecionadas.csv', [
+  ['Nota', 'Situação', 'Prazo', 'Competência', 'Emissão', 'Vencimento', 'Dias de atraso', 'Bruto', 'Líq. atual', 'Última atualização (data/hora)', 'Última atualização (texto)'],
+  ...escolhidas().map(n => [n.nota, n.situacao, n.sit, dt(n.comp), dt(n.emissao), dt(n.venc), Math.max(n.dias, 0), num(n.bruto), num(n.liq), n.ult?.quando || '', n.ult?.texto || ''])]);
+function baixar(nome, linhas) {
+  const t = '\ufeff' + linhas.map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([t], {type:'text/csv;charset=utf-8'})); a.download = nome; a.click();
+}
+
+// ================= PROCESSOS =================
+let procs = [], tipos = {}, procOk = false, atualP = null, histP = [], pendP = null, formId = null, selP = new Set();
+const prazoP = p => {
+  if (!p.prazo) return '—';
+  if (!p.aberto) return dt(p.prazo);
+  return p.alerta === 'atrasado' ? `<span class="p v">Atrasado ${-p.dp} d</span> ${dt(p.prazo)}`
+    : p.alerta ? `<span class="p w">${p.dp === 0 ? 'Vence hoje' : 'Vence em ' + p.dp + ' d'}</span> ${dt(p.prazo)}` : dt(p.prazo);
+};
+function aba(x) {
+  const p = x === 'p';
+  $('#vn').hidden = p; $('#vp').hidden = !p; $('#dr').hidden = true;
+  $('#tn').classList.toggle('on', !p); $('#tp').classList.toggle('on', p);
+  if (p && !procOk) carregarProc();
+}
+$('#tn').onclick = () => aba('n'); $('#tp').onclick = () => aba('p');
+async function carregarProc() {
+  $('#pe').textContent = '';
+  try {
+    const j = await api('procListar'); tipos = j.tipos;
+    procs = j.processos.map(p => ({...p, aberto:!(tipos[p.tipo]?.fim || []).includes(p.situacao), dp:p.prazo ? -dias(p.prazo) : null}));
+    procs.forEach(p => p.alerta = nivel(p)); procOk = true; badges();
+    $('#pt').innerHTML = '<option value="">Todos os tipos</option>' + Object.keys(tipos).map(t => `<option>${esc(t)}</option>`).join('');
+    $('#ps').innerHTML = '<option value="">Todas as situações</option>' + [...new Set(Object.values(tipos).flatMap(t => t.sit))].map(s => `<option>${esc(s)}</option>`).join('');
+    renderP();
+  } catch (e) { $('#pe').textContent = e.message; }
+}
+function filtP() {
+  const q = $('#pq').value.trim().toLowerCase(), t = $('#pt').value, s = $('#ps').value, f = $('#pf').value;
+  return procs.filter(p => (!q || [p.cod, p.objeto, p.parte].join(' ').toLowerCase().includes(q)) && (!t || p.tipo === t) && (!s || p.situacao === s)
+    && (f === 'Todos' || (f === 'Em andamento') === p.aberto));
+}
+function renderP() {
+  const ab = procs.filter(p => p.aberto), at = ab.filter(p => p.prazo && p.dp < 0), v30 = ab.filter(p => p.alerta === 'urgente' || p.alerta === 'breve');
+  $('#resp').innerHTML = [[ab.length, 'em andamento'], [at.length, 'com prazo vencido'], [v30.length, 'vencendo em breve'], [brl(ab.reduce((s, p) => s + p.valor, 0)), 'valor em andamento']]
+    .map(([b, t]) => `<div><b>${b}</b><span>${t}</span></div>`).join('');
+  const l = filtP();
+  $('#tbp').innerHTML = l.length ? l.map(p => `<tr>
+    <td data-l="Selecionar"><input type="checkbox" data-pc="${esc(p.cod)}" ${selP.has(p.cod) ? 'checked' : ''} aria-label="Selecionar ${esc(p.cod)}"></td>
+    <td data-l="Código"><button class="lk" data-oc="${esc(p.cod)}">${esc(p.cod)}</button></td>
+    <td data-l="Tipo">${esc(p.tipo)}</td><td class="ul" data-l="Objeto">${esc(p.objeto)}</td><td class="ul" data-l="Parte">${esc(p.parte)}</td>
+    <td class="n" data-l="Valor">${p.valor ? brl(p.valor) : '—'}</td><td data-l="Abertura">${dt(p.abertura) || '—'}</td>
+    <td data-l="Prazo">${prazoP(p)}</td><td data-l="Situação"><span class="p ${p.aberto ? 's' : 'a'}">${esc(p.situacao)}</span></td>
+    <td class="ul" data-l="Última atualização">${p.ult ? `<b>${p.ult.quando.slice(0,10)}</b> ${esc(p.ult.texto)}` : '—'}</td></tr>`).join('')
+    : '<tr><td colspan="10">Nenhum processo encontrado.</td></tr>';
+  $('#pp').disabled = $('#pc').disabled = !selP.size;
+}
+$('#pq').oninput = $('#pt').onchange = $('#ps').onchange = $('#pf').onchange = renderP;
+const todasP = c => { filtP().forEach(p => c ? selP.add(p.cod) : selP.delete(p.cod)); $('#pta').checked = $('#pta2').checked = c; renderP(); };
+$('#pta').onchange = e => todasP(e.target.checked); $('#pta2').onchange = e => todasP(e.target.checked);
+$('#tbp').onclick = e => {
+  const o = e.target.dataset.oc, c = e.target.dataset.pc;
+  if (o) abrirP(o);
+  if (c) { e.target.checked ? selP.add(c) : selP.delete(c); $('#pp').disabled = $('#pc').disabled = !selP.size; }
+};
+$('#pn').onclick = () => formP(null);
+
+async function recarP(p) {
+  histP = (await api('obsListar', {notas:[p.cod], origem:'processo'})).obs;
+  p.ult = histP[0] ? {quando:histP[0].quando, usuario:histP[0].usuario, texto:histP[0].texto} : null; p.qtdObs = histP.length;
+}
+async function abrirP(cod) {
+  atualP = procs.find(p => p.cod === cod); histP = []; pendP = null;
+  if (!atualP) return;
+  gavetaP('', true); $('#dr').scrollTop = 0;
+  try { await recarP(atualP); gavetaP(); } catch (e) { gavetaP(e.message); }
+}
+function gavetaP(erro, novo) {
+  const p = atualP, k = 'rascunhoP_' + p.cod;
+  const txt = (!novo && $('#ot')) ? $('#ot').value : (ls.g(k) || '');
+  $('#dr').hidden = false;
+  $('#dr').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin-top:0"><h2>${esc(p.cod)}</h2><button class="btn sec" id="fx">Fechar</button></div>
+  <dl><dt>Situação</dt><dd><select id="sit">${(tipos[p.tipo]?.sit || [p.situacao]).map(o => `<option ${o === p.situacao ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></dd>
+  <dt>Tipo</dt><dd>${esc(p.tipo)}</dd><dt>Objeto</dt><dd>${esc(p.objeto)}</dd><dt>Parte</dt><dd>${esc(p.parte) || '—'}</dd>
+  <dt>Valor</dt><dd>${p.valor ? brl(p.valor) : '—'}</dd><dt>Abertura</dt><dd>${dt(p.abertura) || '—'}</dd><dt>Prazo</dt><dd>${prazoP(p)}</dd>
+  <dt>Responsável</dt><dd>${esc(p.resp) || '—'}</dd></dl>
+  <label for="ot"><b>Nova atualização</b></label>
+  <textarea id="ot" maxlength="2000" placeholder="Ex.: Edital publicado; sessão marcada para dia 15."></textarea>
+  <div class="err" role="alert">${esc(erro || '')}</div>
+  <div class="row"><button class="btn" id="os">Salvar atualização</button><button class="btn sec" id="oe">Editar dados</button>
+  <button class="btn sec" id="oi">Imprimir ficha</button><button class="btn sec" id="oc">Baixar planilha</button></div>
+  <h3>Histórico (${histP.length})</h3>
+  ${histP.map(h => `<div class="h"><small>${h.quando} · ${esc(h.usuario)}</small><p>${esc(h.texto)}</p></div>`).join('') || '<p style="color:var(--mut)">Nenhuma atualização ainda.</p>'}`;
+  $('#ot').value = txt;
+  $('#ot').oninput = e => e.target.value ? ls.s(k, e.target.value) : ls.r(k);
+  $('#fx').onclick = () => $('#dr').hidden = true;
+  $('#oe').onclick = () => formP(p);
+  $('#sit').onchange = async e => {
+    const novo = e.target.value; e.target.disabled = true; aviso('Salvando situação…'); salvando++;
+    try {
+      await api('procSituacao', {cod:p.cod, situacao:novo}, 4);
+      p.situacao = novo; p.aberto = !(tipos[p.tipo]?.fim || []).includes(novo);
+      await recarP(p).catch(() => {}); aviso('Situação salva.'); gavetaP(); renderP();
+    } catch (er) { aviso(er.message, true); gavetaP('Situação não foi salva: ' + er.message); }
+    salvando--;
+  };
+  $('#os').onclick = async () => {
+    const t = $('#ot').value.trim(); if (!t) return aviso('Escreva a atualização.', true);
+    if (!pendP || pendP.cod !== p.cod || pendP.texto !== t) pendP = {cod:p.cod, texto:t, id:uid()};
+    $('#os').disabled = true; $('#os').textContent = 'Salvando…'; salvando++;
+    try {
+      await api('obsAdicionar', {nota:p.cod, origem:'processo', texto:t, id:pendP.id}, 4);
+      pendP = null; ls.r(k); $('#ot').value = '';
+      await recarP(p).catch(() => {}); aviso('Atualização salva.'); gavetaP(); renderP();
+    } catch (er) { aviso('Não salvou. Seu texto foi mantido.', true); gavetaP(er.message + ' Seu texto foi mantido; toque em salvar para tentar de novo.'); }
+    salvando--;
+  };
+  $('#oi').onclick = () => imprimir(fichaHtmlP(p));
+  $('#oc').onclick = () => baixar(`processo_${p.cod.replace(/[^\w-]+/g, '_')}.csv`, fichaCsvP(p));
+}
+
+function formP(p) {
+  const novo = !p; formId = uid();
+  const v = p || {cod:'', tipo:Object.keys(tipos)[0] || 'Outro', objeto:'', parte:'', valor:'', abertura:'', prazo:'', resp:''};
+  $('#dr').hidden = false;
+  $('#dr').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin-top:0"><h2>${novo ? 'Novo processo' : 'Editar ' + esc(p.cod)}</h2><button class="btn sec" id="fx">Fechar</button></div>
+  <div class="fg">
+   <label>Código<input id="fc" maxlength="60" value="${esc(v.cod)}" ${novo ? '' : 'disabled'} placeholder="Ex.: PE 012/2026"></label>
+   <label>Tipo<select id="ft">${Object.keys(tipos).map(t => `<option ${t === v.tipo ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>
+   <label class="w2">Objeto<textarea id="fb" maxlength="500">${esc(v.objeto)}</textarea></label>
+   <label class="w2">Parte (fornecedor, órgão ou contratada)<input id="fp" maxlength="200" value="${esc(v.parte)}"></label>
+   <label>Valor (R$)<input id="fv" type="number" step="0.01" min="0" inputmode="decimal" value="${v.valor || ''}"></label>
+   <label>Responsável<input id="fr" maxlength="100" value="${esc(v.resp)}"></label>
+   <label>Abertura<input id="fa" type="date" value="${esc(v.abertura)}"></label>
+   <label>Prazo<input id="fz" type="date" value="${esc(v.prazo)}"></label>
+  </div>
+  <div class="err" id="fer" role="alert"></div>
+  <div class="row"><button class="btn" id="fsv">Salvar</button><button class="btn sec" id="fcn">Cancelar</button></div>`;
+  $('#fx').onclick = $('#fcn').onclick = () => novo ? $('#dr').hidden = true : abrirP(p.cod);
+  $('#fsv').onclick = async () => {
+    const d = {cod:$('#fc').value.trim(), tipo:$('#ft').value, objeto:$('#fb').value.trim(), parte:$('#fp').value.trim(), valor:$('#fv').value,
+      abertura:$('#fa').value, prazo:$('#fz').value, resp:$('#fr').value.trim(), original:novo ? '' : p.cod, id:formId};
+    if (!d.cod || !d.objeto) { $('#fer').textContent = 'Preencha o código e o objeto.'; return; }
+    $('#fsv').disabled = true; $('#fsv').textContent = 'Salvando…'; $('#fer').textContent = ''; salvando++;
+    try { await api('procSalvar', d, 4); await carregarProc(); aviso('Processo salvo.'); abrirP(d.cod); }
+    catch (er) { $('#fer').textContent = er.message + ' Os dados continuam no formulário.'; aviso('Não salvou.', true); $('#fsv').disabled = false; $('#fsv').textContent = 'Salvar'; }
+    salvando--;
+  };
+  $(novo ? '#fc' : '#fb').focus();
+}
+
+// impressão e planilha dos processos
+function fichaHtmlP(p) {
+  return cab(`Ficha do processo ${esc(p.cod)}`) + `<table><tr><th>Tipo</th><th>Situação</th><th>Abertura</th><th>Prazo</th><th>Valor</th><th>Responsável</th></tr>
+  <tr><td>${esc(p.tipo)}</td><td>${esc(p.situacao)}</td><td>${dt(p.abertura) || '—'}</td><td>${dt(p.prazo) || '—'}</td><td>${p.valor ? brl(p.valor) : '—'}</td><td>${esc(p.resp) || '—'}</td></tr></table>
+  <h3>Objeto</h3><p style="color:#000">${esc(p.objeto)}</p><h3>Parte</h3><p style="color:#000">${esc(p.parte) || '—'}</p>
+  <h3>Histórico de atualizações</h3>` + (histP.length
+    ? `<table><tr><th style="width:110px">Data/hora</th><th style="width:130px">Usuário</th><th>Atualização</th></tr>${histP.map(h => `<tr><td>${h.quando}</td><td>${esc(h.usuario)}</td><td>${esc(h.texto)}</td></tr>`).join('')}</table>`
+    : '<p>Nenhuma atualização registrada.</p>');
+}
+function fichaCsvP(p) {
+  return [['Código', p.cod], ['Tipo', p.tipo], ['Objeto', p.objeto], ['Parte', p.parte], ['Situação', p.situacao], ['Abertura', dt(p.abertura)], ['Prazo', dt(p.prazo)],
+    ['Valor', num(p.valor)], ['Responsável', p.resp], [], ['Data/hora', 'Usuário', 'Atualização'], ...histP.map(h => [h.quando, h.usuario, h.texto])];
+}
+const escolhidasP = () => procs.filter(p => selP.has(p.cod));
+$('#pp').onclick = () => {
+  const l = escolhidasP();
+  imprimir(cab('Relatório de processos') + `<table><tr><th>Código</th><th>Tipo</th><th>Objeto</th><th>Parte</th><th>Situação</th><th>Prazo</th><th>Última atualização</th></tr>
+  ${l.map(p => `<tr><td>${esc(p.cod)}</td><td>${esc(p.tipo)}</td><td>${esc(p.objeto)}</td><td>${esc(p.parte)}</td><td>${esc(p.situacao)}</td><td>${dt(p.prazo) || '—'}</td>
+  <td>${p.ult ? `${p.ult.quando} — ${esc(p.ult.texto)}` : '—'}</td></tr>`).join('')}</table><p style="margin-top:10px">Total: ${l.length} processos.</p>`);
+};
+$('#pc').onclick = () => baixar('processos_selecionados.csv', [
+  ['Código', 'Tipo', 'Objeto', 'Parte', 'Situação', 'Abertura', 'Prazo', 'Valor', 'Responsável', 'Última atualização (data/hora)', 'Última atualização (texto)'],
+  ...escolhidasP().map(p => [p.cod, p.tipo, p.objeto, p.parte, p.situacao, dt(p.abertura), dt(p.prazo), num(p.valor), p.resp, p.ult?.quando || '', p.ult?.texto || ''])]);
+
+// ================= AVISOS DE PRAZO =================
+// nível: atrasado | urgente (até 7 dias) | breve (até a antecedência do tipo) | '' (sem aviso)
+const nivel = p => {
+  if (!p.aberto || !p.prazo) return '';
+  if (p.dp < 0) return 'atrasado';
+  if (p.dp <= 7) return 'urgente';
+  return p.dp <= (tipos[p.tipo]?.aviso ?? 30) ? 'breve' : '';
+};
+const hojeISO = () => new Date().toLocaleDateString('sv-SE');
+function badges() {
+  const n = procs.filter(p => p.alerta).length;
+  [['#bd', n], ['#bn', n]].forEach(([s, v]) => { $(s).textContent = v; $(s).hidden = !v; });
+  $('#bl').hidden = false;
+}
+function avisosAbrir(auto) {
+  const al = procs.filter(p => p.alerta);
+  if (auto) {
+    if (!al.length || ls.g('avisoAdiado') === hojeISO()) return;
+    try { if (sessionStorage.getItem('avisoVisto')) return; sessionStorage.setItem('avisoVisto', '1'); } catch (_) {}
+  }
+  const item = p => `<button class="av" data-av="${esc(p.cod)}"><b>${esc(p.cod)}</b> · ${esc(p.tipo)}
+    <span class="p ${p.alerta === 'atrasado' ? 'v' : 'w'}">${p.dp < 0 ? 'Atrasado ' + (-p.dp) + ' d' : p.dp === 0 ? 'Vence hoje' : 'Vence em ' + p.dp + ' d'}</span>
+    <small>${esc(p.objeto)} — prazo ${dt(p.prazo)}</small></button>`;
+  const grupos = [['atrasado', 'Prazo vencido'], ['urgente', 'Vence em até 7 dias'], ['breve', 'Vence em breve']];
+  $('#mb').innerHTML = `<h2 id="mt">⚠ Avisos de prazo</h2>
+    <p style="color:var(--mut);margin:0">${al.length ? `${al.length} processo(s) precisam de atenção.` : 'Nenhum processo próximo do vencimento.'}</p>`
+    + grupos.map(([k, t]) => { const l = al.filter(p => p.alerta === k).sort((a, b) => a.dp - b.dp); return l.length ? `<h3>${t} (${l.length})</h3>` + l.map(item).join('') : ''; }).join('')
+    + `<div class="row"><button class="btn" id="mf">Fechar</button>${al.length ? '<button class="btn sec" id="ma">Não mostrar mais hoje</button>' : ''}</div>`;
+  $('#mv').hidden = false; $('#mf').focus();
+  $('#mf').onclick = () => $('#mv').hidden = true;
+  if ($('#ma')) $('#ma').onclick = () => { ls.s('avisoAdiado', hojeISO()); $('#mv').hidden = true; };
+}
+$('#bl').onclick = () => avisosAbrir(false);
+$('#mv').onclick = e => { if (e.target.id === 'mv') $('#mv').hidden = true; };
+$('#mb').onclick = e => { const c = e.target.closest('[data-av]'); if (c) { $('#mv').hidden = true; aba('p'); abrirP(c.dataset.av); } };
+addEventListener('keydown', e => { if (e.key === 'Escape') $('#mv').hidden = true; });
+// Quem deixa o sistema aberto o dia todo: reconfere a cada 30 min (sem interromper quem está editando)
+setInterval(async () => {
+  if (!tok || !$('#dr').hidden || !$('#mv').hidden || salvando) return;
+  const antes = procs.filter(p => p.alerta).length;
+  await carregarProc();
+  if (procs.filter(p => p.alerta).length > antes) aviso('Há processos novos perto do vencimento. Toque em 🔔 Avisos.', true);
+}, 1800000);
+
+// retomar sessão ao recarregar a página
+try { const t = sessionStorage.getItem('tk'); if (t) { tok = t; entrar(); } } catch (_) {}
+</script>
+</body>
+</html>
